@@ -1,0 +1,64 @@
+<!doctype html><meta charset="utf-8">
+<style>
+  html,body{margin:0;background:transparent;overflow:hidden;user-select:none;font:13px sans-serif}
+  body{display:flex;height:240px;width:420px}
+  #L{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end;gap:6px;padding:0 6px 80px 0;overflow:hidden}
+  #R{width:160px}
+  #u{position:fixed;top:2px;right:4px;padding:2px 7px;border-radius:10px;background:#222c;color:#9d9;font:600 11px sans-serif;pointer-events:none}
+  .b{max-width:230px;padding:8px 10px;border-radius:14px 14px 4px 14px;background:#2b2b2f;color:#eee;box-shadow:0 2px 8px #0006;cursor:pointer;animation:in .2s}
+  .b b{display:block;font-size:11px;color:#9ab;margin-bottom:2px}
+  .b span{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
+  @keyframes in{from{opacity:0;transform:translateX(12px)}}
+  #a{display:block;width:160px;height:160px;object-fit:contain;cursor:grab;-webkit-user-drag:none}
+  #a.missing{border-radius:50%;background:#7aa2ff;transform:scale(.4)}
+  #t{display:none;width:148px;margin:4px 4px 0;padding:4px;border:0;border-radius:8px;background:#222;color:#eee}
+  #m{display:none;width:148px;margin:4px;padding:6px;border:0;border-radius:8px;background:#222;color:#eee;outline:0}
+</style>
+<div id="u" hidden></div><div id="L"></div><div id="R"><img id="a"><select id="t"></select><input id="m" placeholder="message → Grok Bot ⏎"></div>
+<script>
+// Gifs in ./gifs: standby, hover, drag, processing, done
+const el = document.getElementById('a'), box = document.getElementById('m'), sel = document.getElementById('t');
+const fill = ts => { sel.length = 0; ts.forEach(t => sel.add(new Option(t.label, t.id))); };
+av.targets().then(fill); av.onTargets(fill);
+const panel = on => { sel.style.display = box.style.display = on ? 'block' : 'none'; if (on) box.focus(); };
+let hover = false, dragging = false, moved = false, bot = 'idle', off;
+
+function render() {
+  // priority: drag > processing > done > hover > standby
+  const s = dragging ? 'drag' : bot === 'processing' ? 'processing' : bot === 'done' ? 'done' : hover ? 'hover' : 'standby';
+  if (el.dataset.s !== s) { el.dataset.s = s; el.classList.remove('missing'); el.src = `gifs/${s}.gif`; }
+}
+el.onerror = () => el.classList.add('missing');
+el.onmouseenter = () => { hover = true; render(); };
+el.onmouseleave = () => { hover = false; render(); };
+el.onmousedown = e => { if (e.button === 0) { dragging = true; moved = false; off = [e.screenX - window.screenX, e.screenY - window.screenY]; render(); } };
+window.onmousemove = e => { if (dragging) { moved = true; av.move(e.screenX - off[0], e.screenY - off[1]); } };
+window.onmouseup = () => { if (dragging && !moved) panel(box.style.display !== 'block'); dragging = false; render(); };
+box.onkeydown = e => { if (e.key === 'Enter' && box.value.trim()) { av.send(box.value, sel.value); box.value = ''; panel(false); } if (e.key === 'Escape') panel(false); };
+el.oncontextmenu = () => av.menu();
+
+// Click-through: only avatar, panel and bubbles take the mouse; everything else passes to the apps below.
+let hit = false;
+window.addEventListener('mousemove', e => { const on = dragging || !!e.target.closest('#a,#t,#m,.b'); if (on !== hit) { hit = on; av.hit(on); } });
+
+// Usage badge, top right: green < 70%, amber < 90%, red above.
+const ub = document.getElementById('u');
+av.onUsage(({ pct, reset }) => {
+  ub.hidden = false; ub.textContent = Math.round(pct) + '%';
+  ub.style.color = pct < 70 ? '#9d9' : pct < 90 ? '#fb4' : '#f66';
+  ub.title = 'Grok Bot usage · resets ' + new Date(reset).toLocaleDateString();
+});
+
+// Bubbles: newest at the bottom, click to dismiss.
+const L = document.getElementById('L');
+av.onBubbles(bs => bs.forEach(b => {
+  const d = document.createElement('div'); d.className = 'b';
+  const n = document.createElement('b'), t = document.createElement('span');
+  n.textContent = b.name; t.textContent = b.text; d.append(n, t);
+  const gone = () => { d.remove(); if (!L.children.length && hit) { hit = false; av.hit(false); } };
+  d.onclick = gone;   // stays until clicked
+  L.append(d);   // no cap: older bubbles sit above, out of view, and slide down as newer ones are dismissed
+}));
+av.onState(s => { bot = s; render(); });
+render();
+</script>
