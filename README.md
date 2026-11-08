@@ -1,15 +1,42 @@
 # grok_avatar
 
-A floating, click-through desktop avatar for the Grok Bot desktop app (Windows, Electron).
+A floating desktop avatar for the [Grok Bot](https://cursor.com/download/bot) app on Windows.
 
-- **States** from five GIFs in `gifs/`: `standby`, `hover`, `drag`, `processing`, `done`.
-- **Bubbles** for new bot messages, read from Grok Bot's local roster; click to dismiss.
-- **Send** a message to any bot or group chat from the avatar (opens the chat via Grok Bot's `grokbot://` deep link).
-- **Usage %** badge, a tray icon, and `Ctrl+Shift+X` to show/hide.
+- Animates by state (standby, hover, drag, processing, done) from the files in [`gifs/`](gifs/README.md).
+- Shows new bot messages as chat bubbles beside it; click a bubble to dismiss it.
+- Click the avatar to message any bot or group chat; it opens the chat through Grok Bot's `grokbot://` links and presses Enter.
+- Shows your Grok Bot usage in the top-right corner.
 
-Unofficial. It reads Grok Bot's local files and depends on its current format (tested on 0.78.5).
+Unofficial: it reads Grok Bot's local data and depends on its current format (tested with 0.78.5).
+
+## Run
 
 ```
 npm install
 npm start
 ```
+
+`launch.cmd` starts it without a terminal. Only one copy runs at a time.
+
+## Controls
+
+| Action | Does |
+|---|---|
+| Click the avatar | Open the message box and bot picker |
+| Drag the avatar | Move it |
+| Right-click the avatar | Refresh bots, reload GIFs, keep Grok Bot minimized, quit |
+| `Ctrl+Shift+X` or the tray icon | Show / hide |
+
+## Settings
+
+`%APPDATA%\grok_avatar\settings.json`:
+
+| Key | Default | |
+|---|---|---|
+| `minimize` | `true` | Minimize Grok Bot again after sending |
+| `defaultBot` | `""` | Name prefix of the bot selected by default |
+
+## Notes
+
+- Sending brings Grok Bot to the front for about two seconds; Windows only delivers keystrokes to the active window.
+- If the chat already holds an unsent draft, Grok Bot keeps it and the avatar's Enter sends that draft.

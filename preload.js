@@ -1,5 +1,13 @@
 const { contextBridge, ipcRenderer } = require('electron');
+
+const EVENTS = ['state', 'usage', 'bubbles', 'targets', 'gifs'];
+
 contextBridge.exposeInMainWorld('av', {
-  move: (x, y) => ipcRenderer.send('move', x, y), quit: () => ipcRenderer.send('quit'),
-  send: (t, s) => ipcRenderer.send('send', t, s), targets: () => ipcRenderer.invoke('targets'), menu: () => ipcRenderer.send('menu'), onTargets: f => ipcRenderer.on('targets', (_, t) => f(t)), hit: on => ipcRenderer.send('hit', on), onBubbles: f => ipcRenderer.on('bubbles', (_, b) => f(b)), onUsage: f => ipcRenderer.on('usage', (_, u) => f(u)), onState: f => ipcRenderer.on('state', (_, s) => f(s)),
+  move: (x, y) => ipcRenderer.send('move', x, y),
+  hit: over => ipcRenderer.send('hit', over),
+  menu: () => ipcRenderer.send('menu'),
+  send: (text, agentId) => ipcRenderer.send('send', text, agentId),
+  targets: () => ipcRenderer.invoke('targets'),
+  gifs: () => ipcRenderer.invoke('gifs'),
+  on: (event, fn) => EVENTS.includes(event) && ipcRenderer.on(event, (_, value) => fn(value)),
 });
