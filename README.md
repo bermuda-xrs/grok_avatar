@@ -40,3 +40,4 @@ npm start
 
 - Sending brings Grok Bot to the front for about two seconds; Windows only delivers keystrokes to the active window.
 - If the chat already holds an unsent draft, Grok Bot keeps it and the avatar's Enter sends that draft.
+- Enjoy!
